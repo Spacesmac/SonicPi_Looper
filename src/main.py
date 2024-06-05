@@ -16,6 +16,7 @@ start_time = None
 # Variable to handle playback
 playback_thread = None
 is_playing = False
+record_end_time = 0
 
 # Function to send OSC message
 def send_osc_message(sample):
@@ -43,8 +44,9 @@ def start_recording():
 
 # Function to stop recording
 def stop_recording():
-    global is_recording
+    global is_recording, record_end_time
     is_recording = False
+    record_end_time = time.time()
     record_button.config(text="Start Recording", command=start_recording)
 
 # Function to play back recorded events
@@ -64,6 +66,10 @@ def playback():
                 if elapsed < timestamp:
                     time.sleep(timestamp - elapsed)
                 send_osc_message(sample)
+            
+            final_delay = record_end_time - (start_time + recorded_events[-1][1])
+            if final_delay > 0:
+                time.sleep(final_delay)
         is_playing = False
         playback_button.config(text="Play Recording", command=start_playback)
 

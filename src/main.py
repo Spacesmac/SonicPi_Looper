@@ -15,7 +15,7 @@ start_time = None
 
 # Function to send OSC message
 def send_osc_message(sample):
-    client.send_message("/osc/drum_pad", sample)
+    client.send_message("/drum_pad", sample)
 
 # Function to handle button press
 def on_button_press(sample):
@@ -48,13 +48,14 @@ def playback():
     def playback_thread():
         if not recorded_events:
             return
-        start_playback_time = time.time()
-        for sample, timestamp in recorded_events:
-            elapsed = time.time() - start_playback_time
-            if elapsed < timestamp:
-                time.sleep(timestamp - elapsed)
-            send_osc_message(sample)
-    Thread(target=playback_thread).start()
+        while True:
+            start_playback_time = time.time()
+            for sample, timestamp in recorded_events:
+                elapsed = time.time() - start_playback_time
+                if elapsed < timestamp:
+                    time.sleep(timestamp - elapsed)
+                send_osc_message(sample)
+    Thread(target=playback_thread, daemon=True).start()
 
 # Create the main window
 root = tk.Tk()

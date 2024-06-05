@@ -46,8 +46,13 @@ def stop_recording():
 # Function to play back recorded events
 def playback():
     def playback_thread():
+        if not recorded_events:
+            return
+        start_playback_time = time.time()
         for sample, timestamp in recorded_events:
-            time.sleep(timestamp)
+            elapsed = time.time() - start_playback_time
+            if elapsed < timestamp:
+                time.sleep(timestamp - elapsed)
             send_osc_message(sample)
     Thread(target=playback_thread).start()
 

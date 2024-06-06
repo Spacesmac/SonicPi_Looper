@@ -93,7 +93,7 @@ def generate_sonic_pi_code():
     if not recorded_events:
         messagebox.showinfo("Info", "No recorded events to generate code.")
         return
-    code_lines = ["live_loop :drum_pad do"]
+    code_lines = ["live_loop :drum_rec do"]
     previous_timestamp = 0
     for sample, timestamp in recorded_events:
         wait_time = timestamp - previous_timestamp

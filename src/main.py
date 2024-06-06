@@ -107,6 +107,7 @@ def generate_sonic_pi_code():
     code_lines.append("end")
     code = "\n".join(code_lines)
     show_generated_code(code)
+    send_sonic_pi_code(code)
 
 # Function to display the generated Sonic Pi code
 def show_generated_code(code):
@@ -116,6 +117,10 @@ def show_generated_code(code):
     text_area.pack(expand=True, fill=tk.BOTH)
     text_area.insert(tk.END, code)
     text_area.config(state=tk.DISABLED)
+
+# Function to send Sonic Pi code via OSC
+def send_sonic_pi_code(code):
+    client.send_message("/run-code", code)
 
 # Create the main window
 root = tk.Tk()

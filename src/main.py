@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from pythonosc import udp_client
 import time
 from threading import Thread
@@ -66,7 +67,7 @@ def playback():
                 if elapsed < timestamp:
                     time.sleep(timestamp - elapsed)
                 send_osc_message(sample)
-            
+            # Add the delay to ensure the loop includes the waiting time at the end
             final_delay = record_end_time - (start_time + recorded_events[-1][1])
             if final_delay > 0:
                 time.sleep(final_delay)
@@ -86,6 +87,35 @@ def start_playback():
 def stop_playback():
     global is_playing
     is_playing = False
+
+# Function to generate Sonic Pi code from recorded events
+def generate_sonic_pi_code():
+    if not recorded_events:
+        messagebox.showinfo("Info", "No recorded events to generate code.")
+        return
+    code_lines = ["live_loop :drum_pad do"]
+    previous_timestamp = 0
+    for sample, timestamp in recorded_events:
+        wait_time = timestamp - previous_timestamp
+        code_lines.append(f"  sleep {wait_time}")
+        code_lines.append(f"  sample :{sample}")
+        previous_timestamp = timestamp
+    # Add the delay to ensure the loop includes the waiting time at the end
+    final_delay = record_end_time - (start_time + recorded_events[-1][1])
+    if final_delay > 0:
+        code_lines.append(f"  sleep {final_delay}")
+    code_lines.append("end")
+    code = "\n".join(code_lines)
+    show_generated_code(code)
+
+# Function to display the generated Sonic Pi code
+def show_generated_code(code):
+    code_window = tk.Toplevel(root)
+    code_window.title("Generated Sonic Pi Code")
+    text_area = tk.Text(code_window, wrap=tk.WORD, width=60, height=20)
+    text_area.pack(expand=True, fill=tk.BOTH)
+    text_area.insert(tk.END, code)
+    text_area.config(state=tk.DISABLED)
 
 # Create the main window
 root = tk.Tk()
@@ -111,6 +141,10 @@ record_button.pack()
 # Create playback button
 playback_button = tk.Button(root, text="Play Recording", command=start_playback)
 playback_button.pack()
+
+# Create generate code button
+generate_code_button = tk.Button(root, text="Generate Sonic Pi Code", command=generate_sonic_pi_code)
+generate_code_button.pack()
 
 # Bind keys to the on_key_press function
 root.bind("<KeyPress>", on_key_press)

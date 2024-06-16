@@ -120,7 +120,11 @@ def show_generated_code(code):
 
 # Function to send Sonic Pi code via OSC
 def send_sonic_pi_code(code):
-    client.send_message("/run-code", code)
+    try:
+        client.send_message("/run-code", code)
+        messagebox.showinfo("Success", "Code sent to Sonic Pi successfully.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to send code to Sonic Pi: {e}")
 
 # Create the main window
 root = tk.Tk()

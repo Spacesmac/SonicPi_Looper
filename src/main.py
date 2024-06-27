@@ -93,7 +93,7 @@ def generate_sonic_pi_code():
     if not recorded_events:
         messagebox.showinfo("Info", "No recorded events to generate code.")
         return
-    code_lines = ["live_loop :drum_pad do"]
+    code_lines = ["live_loop :drum_rec do"]
     previous_timestamp = 0
     for sample, timestamp in recorded_events:
         wait_time = timestamp - previous_timestamp
@@ -107,6 +107,7 @@ def generate_sonic_pi_code():
     code_lines.append("end")
     code = "\n".join(code_lines)
     show_generated_code(code)
+    send_sonic_pi_code(code)
 
 # Function to display the generated Sonic Pi code
 def show_generated_code(code):
@@ -116,6 +117,14 @@ def show_generated_code(code):
     text_area.pack(expand=True, fill=tk.BOTH)
     text_area.insert(tk.END, code)
     text_area.config(state=tk.DISABLED)
+
+# Function to send Sonic Pi code via OSC
+def send_sonic_pi_code(code):
+    try:
+        client.send_message("/run-code", code)
+        messagebox.showinfo("Success", "Code sent to Sonic Pi successfully.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to send code to Sonic Pi: {e}")
 
 # Create the main window
 root = tk.Tk()

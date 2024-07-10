@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget
 from PyQt5.QtGui import QFont
 from logic.recording import start_recording, stop_recording
 from logic.playback import start_playback, stop_playback
@@ -11,7 +11,7 @@ class ControlsWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()  # Horizontal layout for buttons
 
         self.record_button = QPushButton("Start Recording")
         self.record_button.setFont(QFont("Arial", 14))

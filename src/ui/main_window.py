@@ -1,9 +1,8 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel, QApplication, QGridLayout
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from ui.drum_pad_widget import DrumPadWidget
 from ui.controls_widget import ControlsWidget
-from logic import recording  # Import the recording logic
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -12,20 +11,17 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle("Drum Pad Kit")
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 600, 600)  # Increased window size
 
         main_layout = QVBoxLayout()
 
-        title = QLabel("Drum Pad Kit")
-        title.setFont(QFont("Arial", 20, QFont.Bold))
-        title.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title)
+        # Create controls widget and add to top
+        self.controls = ControlsWidget()
+        main_layout.addWidget(self.controls, alignment=Qt.AlignTop)
 
+        # Create drum pad widget and add to main layout
         self.drum_pad = DrumPadWidget()
         main_layout.addWidget(self.drum_pad)
-
-        self.controls = ControlsWidget()
-        main_layout.addWidget(self.controls)
 
         container = QWidget()
         container.setLayout(main_layout)

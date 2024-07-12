@@ -36,14 +36,14 @@ class DrumPadWidget(QWidget):
         self.pad_speed.editingFinished.connect(self.update_cols_speed_bpm)
         self.controls_layout.addWidget(self.pad_speed, 0, 3)
 
-        #self.pad_number_label = QLabel("Pads Number:")
-        #self.pad_number_label.setFixedWidth(70)
-        #self.controls_layout.addWidget(self.pad_number_label, 0, 4)
-        #self.pad_number = QLineEdit(str(self.cols_max))
-        #self.pad_number.setValidator(QIntValidator(2, 16))
-        #self.pad_number.setFixedWidth(50)
-        #self.pad_number.editingFinished.connect(self.update_max_pads)
-        #self.controls_layout.addWidget(self.pad_number, 0, 5)
+        self.pad_number_label = QLabel("Pads Number:")
+        self.pad_number_label.setFixedWidth(70)
+        self.controls_layout.addWidget(self.pad_number_label, 0, 4)
+        self.pad_number = QLineEdit(str(self.cols_max))
+        self.pad_number.setValidator(QIntValidator(2, 16))
+        self.pad_number.setFixedWidth(50)
+        self.pad_number.editingFinished.connect(self.update_max_pads)
+        self.controls_layout.addWidget(self.pad_number, 0, 5)
 
         play_button = QPushButton("Play")
         play_button.clicked.connect(self.start_metronome)
@@ -52,6 +52,10 @@ class DrumPadWidget(QWidget):
         stop_button = QPushButton("Stop")
         stop_button.clicked.connect(self.stop_metronome)
         self.controls_layout.addWidget(stop_button, 0, self.cols_max - 1)
+
+        generate_button = QPushButton("Generate Code")
+        generate_button.clicked.connect(self.generate_code_from_grid)
+        self.controls_layout.addWidget(generate_button, 0, self.cols_max)
 
         # Add controls layout to main layout
         self.main_layout.addLayout(self.controls_layout)
@@ -73,9 +77,7 @@ class DrumPadWidget(QWidget):
         for i in reversed(range(self.grid_layout.count())):
             widget = self.grid_layout.itemAt(i).widget()
             if widget:
-                widget.setParent(None)
-
-        # Indicator lines
+                widget.deleteLater()
         self.indicator_lines = [QLabel() for _ in range(self.cols_max)]
         for col in range(self.cols_max):
             self.indicator_lines[col].setStyleSheet("background-color: red;")
@@ -170,6 +172,27 @@ class DrumPadWidget(QWidget):
             self.indicator_lines[self.playing_column].setStyleSheet("background-color: green;")
         self.metronome_timer.stop()
 
+    def generate_code_from_grid(self):
+        sonic_pi_code = "use_bpm {}\n".format(self.bpm)
+        pad_sleep = 1 / self.cols_loop_speed
+
+        for row, (key, sample) in enumerate(self.key_sample_map.items()):
+            sonic_pi_code += "live_loop :{} do\n".format(sample)
+            accumulated_sleep = 0.0
+            for col in range(self.cols_max):
+                if self.sequence_grid[row][col]:
+                    if accumulated_sleep > 0:
+                        sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
+                        accumulated_sleep = 0.0
+                    sonic_pi_code += "  sample :{}\n".format(sample)
+                    accumulated_sleep += pad_sleep
+                else:
+                    accumulated_sleep += pad_sleep
+            if accumulated_sleep > 0:
+                sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
+            sonic_pi_code += "end\n"
+        print(sonic_pi_code)
+
     def play_next_column(self):
         for col in range(self.cols_max):
             self.indicator_lines[col].setStyleSheet("background-color: red;")
@@ -177,9 +200,9 @@ class DrumPadWidget(QWidget):
         for row in range(self.rows_max):
             if self.sequence_grid[row][self.playing_column]:
                 print("Playing cols")
-                sample = self.key_sample_map[list(self.key_sample_map.keys())[row]]  # Get sample name based on row index
+                sample = self.key_sample_map[list(self.key_sample_map.keys())[row]]
                 send_osc_message("/drum_pad", sample)
-        self.playing_column = (self.playing_column + 1) % self.cols_max  # Move to the next column
+        self.playing_column = (self.playing_column + 1) % self.cols_max
 
     def handle_key_press(self, event):
         key = event.text()

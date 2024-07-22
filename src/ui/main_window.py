@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel, QApplicat
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from ui.drum_pad_widget import DrumPadWidget
-from ui.controls_widget import ControlsWidget
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -14,12 +14,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 600, 600)  # Increased window size
 
         main_layout = QVBoxLayout()
-
-        # Create controls widget and add to top
-        self.controls = ControlsWidget()
-        main_layout.addWidget(self.controls, alignment=Qt.AlignTop)
-
-        # Create drum pad widget and add to main layout
+        
         self.drum_pad = DrumPadWidget()
         main_layout.addWidget(self.drum_pad)
 

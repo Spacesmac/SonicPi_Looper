@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 from functools import partial
 from PyQt5.QtCore import Qt, QTimer, QSize
 from PyQt5.QtGui import QIntValidator
+from ui.code_window import CodeWindow
 from logic.osc_client import send_osc_message
 from logic.recording import add_recorded_event
 
@@ -29,7 +30,10 @@ class DrumPadWidget(QWidget):
             'a': 'drum_heavy_kick',
             's': 'drum_snare_hard',
             'd': 'hat_bdu',
-            'f': 'drum_cymbal_closed'
+            'f': 'drum_cymbal_closed',
+            'e': 'drum_tom_hi_hard',
+            'z': 'drum_tom_lo_hard',
+            'g': 'drum_tom_mid_hard'
         }
         self.initUI()
 
@@ -233,7 +237,9 @@ class DrumPadWidget(QWidget):
             if accumulated_sleep > 0:
                 sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
             sonic_pi_code += "end\n"
-        print(sonic_pi_code)
+
+        code_window = CodeWindow(sonic_pi_code, self)
+        code_window.exec_()
 
     def play_next_column(self):
         osc_list = []

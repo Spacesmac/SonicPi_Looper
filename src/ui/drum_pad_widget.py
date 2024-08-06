@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QPushButton, QLabel,
-    QLineEdit, QComboBox, QMenu, QAction, QToolButton,
+    QLineEdit, QComboBox, QMenu, QAction, QToolButton,QCheckBox, QSlider
 )
+import random
 from functools import partial
 from PyQt5.QtCore import Qt, QTimer, QSize
 from PyQt5.QtGui import QIntValidator
@@ -39,9 +40,20 @@ class DrumPadWidget(QWidget):
 
     def initUI(self):
         self.main_layout = QVBoxLayout()
+        self.controls_layout = QGridLayout()
+        self.humanize_checkbox = QCheckBox("Humanize")
+        self.humanize_checkbox.setChecked(False)  # Default to off
+        self.controls_layout.addWidget(self.humanize_checkbox, 1, 0)
+
+        self.humanize_slider = QSlider(Qt.Horizontal)
+        self.humanize_slider.setRange(0, 100)  # 0 to 100% timing variation
+        self.humanize_slider.setValue(20)  # Default to 20%
+        self.humanize_slider.setEnabled(False)
+        self.controls_layout.addWidget(self.humanize_slider, 1, 1, 1, 2)
+
+        self.humanize_checkbox.stateChanged.connect(self.toggle_humanize_slider)
 
         # Control buttons layout
-        self.controls_layout = QGridLayout()
         self.bpm_label = QLabel("BPM:")
         self.bpm_label.setFixedWidth(30)
         self.controls_layout.addWidget(self.bpm_label, 0, 0)
@@ -142,6 +154,9 @@ class DrumPadWidget(QWidget):
                 pad_button.clicked.connect(lambda _, r=row, c=col: self.toggle_sequence_grid(r, c))
                 self.update_button_color(pad_button, self.sequence_grid[row][col])  # Set initial color based on sequence_grid
                 self.grid_layout.addWidget(pad_button, row + 1, col + 1)
+
+    def toggle_humanize_slider(self, state):
+        self.humanize_slider.setEnabled(state == Qt.Checked)
 
     def change_sample(self, key, sample, button):
         self.key_sample_map[key] = sample
@@ -251,7 +266,13 @@ class DrumPadWidget(QWidget):
                 print("Playing cols")
                 sample = self.key_sample_map[list(self.key_sample_map.keys())[row]]
                 osc_list.append(sample)
-        if osc_list.__len__() > 0:
+                if self.humanize_checkbox.isChecked():
+                    deviation_percent = self.humanize_slider.value() / 100
+                    deviation_ms = self.interval_per_pad * deviation_percent
+                    random_delay = random.uniform(-deviation_ms, deviation_ms)
+                    random_delay = max(0, int(random_delay))  # Clamp to zero if negative
+                    QTimer.singleShot(random_delay, partial(send_osc_message, "/drum_pad", sample))
+        if not self.humanize_checkbox.isChecked() and osc_list:
             send_osc_message("/drum_pad", osc_list)
         self.playing_column = (self.playing_column + 1) % self.cols_max
 

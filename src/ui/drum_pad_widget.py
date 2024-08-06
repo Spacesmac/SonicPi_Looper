@@ -265,8 +265,8 @@ class DrumPadWidget(QWidget):
                 if humanize_enabled:
                     variation = pad_sleep * humanize_value
                     adjusted_sleep = accumulated_sleep + random.uniform(-variation, variation)
-                    adjusted_sleep += compensation  # Apply compensation to the last sleep
-                    compensation = 0.0  # Reset compensation after it's applied
+                    adjusted_sleep += compensation
+                    compensation = 0.0
                     sonic_pi_code += "  sleep {}\n".format(adjusted_sleep)
                 else:
                     sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)

@@ -265,8 +265,20 @@ class DrumPadWidget(QWidget):
             if self.is_recording:
                 current_col = self.playing_column
                 row = list(self.key_sample_map.keys()).index(key)
-                self.sequence_grid[row][current_col] = True
-                self.update_button_color(self.grid_layout.itemAtPosition(row + 1, current_col + 1).widget(), True)
+                print(f"Recording at row {row}, column: {current_col}")
+                if 0 <= row < len(self.sequence_grid):
+                    if 0 <= current_col < len(self.sequence_grid[row]):
+                        print(f"{current_col}, len = {len(self.sequence_grid[row])}")
+                        if current_col == 0:
+                            self.sequence_grid[row][len(self.sequence_grid[row])-1] = True
+                        else:
+                            self.sequence_grid[row][current_col -1] = True
+                        print(f"{self.sequence_grid}")
+                        if current_col == 0:
+                            col_button = self.grid_layout.itemAtPosition(row+1, len(self.sequence_grid[row])).widget()
+                        else:
+                            col_button = self.grid_layout.itemAtPosition(row+1, current_col).widget()
+                        self.update_button_color(col_button, True)
     
     def set_playing_column(self, column):
         self.indicator_line.setGeometry((column + 1) * 50, 0, 2, self.height())

@@ -234,23 +234,42 @@ class DrumPadWidget(QWidget):
         self.metronome_timer.stop()
 
     def generate_code_from_grid(self):
+        humanize_enabled = self.humanize_checkbox.isChecked()
+        humanize_value = self.humanize_slider.value() / 100
         sonic_pi_code = "use_bpm {}\n".format(self.bpm)
         pad_sleep = 1 / self.cols_loop_speed
 
         for row, (key, sample) in enumerate(self.key_sample_map.items()):
             sonic_pi_code += "live_loop :{} do\n".format(sample)
             accumulated_sleep = 0.0
+            compensation = 0.0
             for col in range(self.cols_max):
                 if self.sequence_grid[row][col]:
                     if accumulated_sleep > 0:
-                        sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
+                        if humanize_enabled:
+                            variation = pad_sleep * humanize_value
+                            adjusted_sleep = accumulated_sleep + random.uniform(-variation, variation)
+                            compensation = accumulated_sleep - adjusted_sleep
+                            sonic_pi_code += "  sleep {}\n".format(adjusted_sleep)
+                        else:
+                            sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
                         accumulated_sleep = 0.0
+
                     sonic_pi_code += "  sample :{}\n".format(sample)
                     accumulated_sleep += pad_sleep
+
                 else:
                     accumulated_sleep += pad_sleep
+
             if accumulated_sleep > 0:
-                sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
+                if humanize_enabled:
+                    variation = pad_sleep * humanize_value
+                    adjusted_sleep = accumulated_sleep + random.uniform(-variation, variation)
+                    adjusted_sleep += compensation  # Apply compensation to the last sleep
+                    compensation = 0.0  # Reset compensation after it's applied
+                    sonic_pi_code += "  sleep {}\n".format(adjusted_sleep)
+                else:
+                    sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
             sonic_pi_code += "end\n"
 
         code_window = CodeWindow(sonic_pi_code, self)

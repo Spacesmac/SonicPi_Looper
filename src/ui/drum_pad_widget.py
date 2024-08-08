@@ -9,6 +9,7 @@ from PyQt5.QtGui import QIntValidator
 from ui.code_window import CodeWindow
 from logic.osc_client import send_osc_message
 from logic.recording import add_recorded_event
+from ui.ui_components import create_labeled_input
 
 class DrumPadWidget(QWidget):
     def __init__(self):
@@ -53,33 +54,17 @@ class DrumPadWidget(QWidget):
 
         self.humanize_checkbox.stateChanged.connect(self.toggle_humanize_slider)
 
-        # Control buttons layout
-        self.bpm_label = QLabel("BPM:")
-        self.bpm_label.setFixedWidth(30)
-        self.controls_layout.addWidget(self.bpm_label, 0, 0)
-        self.bpm_input = QLineEdit(str(self.bpm))
-        self.bpm_input.setValidator(QIntValidator(60, 240))  # Set the range for BPM
-        self.bpm_input.setFixedWidth(50)
-        self.bpm_input.editingFinished.connect(self.update_bpm_from_input)
-        self.controls_layout.addWidget(self.bpm_input, 0, 1)
+        self.bpm_input = create_labeled_input("BPM:", label_width=30, line_width=50, default_value=str(self.bpm), validator=QIntValidator(60, 240), slot=self.update_bpm_from_input)
+        self.controls_layout.addWidget(self.bpm_input['label'], 0, 0)
+        self.controls_layout.addWidget(self.bpm_input['input'], 0, 1)
 
-        self.pad_speed_label = QLabel("Pads/BPM:")
-        self.pad_speed_label.setFixedWidth(70)
-        self.controls_layout.addWidget(self.pad_speed_label, 0, 2)
-        self.pad_speed = QLineEdit(str(self.cols_loop_speed))
-        self.pad_speed.setValidator(QIntValidator(2, 16))
-        self.pad_speed.setFixedWidth(50)
-        self.pad_speed.editingFinished.connect(self.update_cols_speed_bpm)
-        self.controls_layout.addWidget(self.pad_speed, 0, 3)
+        self.pad_speed = create_labeled_input("Pads/BPM:", label_width=70, line_width=50, default_value=str(self.cols_loop_speed), validator=QIntValidator(2, 16), slot=self.update_cols_speed_bpm)
+        self.controls_layout.addWidget(self.pad_speed['label'], 0, 2)
+        self.controls_layout.addWidget(self.pad_speed['input'], 0, 3)
 
-        self.pad_number_label = QLabel("Pads Number:")
-        self.pad_number_label.setFixedWidth(80)
-        self.controls_layout.addWidget(self.pad_number_label, 0, 4)
-        self.pad_number = QLineEdit(str(self.cols_max))
-        self.pad_number.setValidator(QIntValidator(2, 16))
-        self.pad_number.setFixedWidth(50)
-        self.pad_number.editingFinished.connect(self.update_max_pads)
-        self.controls_layout.addWidget(self.pad_number, 0, 5)
+        self.pad_number = create_labeled_input("Pads Number:", label_width=80, line_width=50, default_value=str(self.cols_max), validator=QIntValidator(2, 16), slot=self.update_max_pads)
+        self.controls_layout.addWidget(self.pad_number['label'], 0, 4)
+        self.controls_layout.addWidget(self.pad_number['input'], 0, 5)
 
         play_button = QPushButton("Play")
         play_button.clicked.connect(self.start_metronome)
@@ -163,30 +148,30 @@ class DrumPadWidget(QWidget):
         button.setText(f"Play {sample} (Key: {key.upper()})")
     def update_bpm_from_input(self):
         try:
-            self.bpm = int(self.bpm_input.text())
+            self.bpm = int(self.bpm_input['input'].text())
             self.restart_metronome()
         except ValueError:
-            self.bpm_input.setText(str(self.bpm))
+            self.bpm_input['input'].setText(str(self.bpm))
 
     def update_max_pads(self):
         try:
-            new_cols_max = int(self.pad_number.text())
+            new_cols_max = int(self.pad_number['input'].text())
             if new_cols_max >= self.cols_loop_speed:
                 self.cols_max = new_cols_max
                 self.playing_column = 0
                 self.init_grid_layout()  # Reinitialize grid layout with new number of pads
                 self.restart_metronome()
         except ValueError:
-            self.pad_number.setText(str(self.cols_max))
+            self.pad_number['input'].setText(str(self.cols_max))
 
     def update_cols_speed_bpm(self):
         try:
-            self.bpm = int(self.bpm_input.text())
-            self.cols_loop_speed = int(self.pad_speed.text())
+            self.bpm = int(self.bpm_input['input'].text())
+            self.cols_loop_speed = int(self.pad_speed['input'].text())
             self.restart_metronome()
         except ValueError:
-            self.bpm_input.setText(str(self.bpm))
-            self.pad_speed.setText(str(self.cols_loop_speed))
+            self.bpm_input['input'].setText(str(self.bpm))
+            self.pad_speed['input'].setText(str(self.cols_loop_speed))
 
     def toggle_recording(self):
         self.is_recording = not self.is_recording
@@ -198,9 +183,9 @@ class DrumPadWidget(QWidget):
 
     def update_button_color(self, button, is_active):
         if is_active:
-            button.setStyleSheet("background-color: #ccffcc; padding: 10px; border: 1px solid black;")
+            button.setStyleSheet("background-color: blue")
         else:
-            button.setStyleSheet("background-color: #ffcccc; padding: 10px; border: 1px solid black;")
+            button.setStyleSheet("background-color: white")
 
     def toggle_sequence_grid(self, row, col):
         self.sequence_grid[row][col] = not self.sequence_grid[row][col]

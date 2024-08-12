@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle("Drum Pad Kit")
-        self.setGeometry(100, 100, 600, 600)  # Increased window size
+        self.setGeometry(100, 100, 600, 600)
 
         main_layout = QVBoxLayout()
         
@@ -25,7 +25,6 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         print(f"Key pressed: {event.text()}")  # Debug print
         if event.text() == 'r': #Record button
-            print("here")
             self.controls.handle_record_key(event.text())
         else:
             self.drum_pad.handle_key_press(event)

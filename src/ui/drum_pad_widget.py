@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIntValidator
 from ui.code_window import CodeWindow
 from logic.osc_client import send_osc_message
 from logic.recording import add_recorded_event
-from ui.ui_components import create_labeled_input
+from ui.ui_components import create_labeled_input, create_slider, create_checkbox
 
 class DrumPadWidget(QWidget):
     def __init__(self):
@@ -42,17 +42,13 @@ class DrumPadWidget(QWidget):
     def initUI(self):
         self.main_layout = QVBoxLayout()
         self.controls_layout = QGridLayout()
-        self.humanize_checkbox = QCheckBox("Humanize")
-        self.humanize_checkbox.setChecked(False)  # Default to off
+        self.humanize_checkbox = create_checkbox("Humanize", False, self.toggle_humanize_slider)
         self.controls_layout.addWidget(self.humanize_checkbox, 1, 0)
 
-        self.humanize_slider = QSlider(Qt.Horizontal)
-        self.humanize_slider.setRange(0, 100)  # 0 to 100% timing variation
-        self.humanize_slider.setValue(20)  # Default to 20%
-        self.humanize_slider.setEnabled(False)
+        self.humanize_slider = create_slider(Qt.Horizontal, 0, 100, 20, False)
         self.controls_layout.addWidget(self.humanize_slider, 1, 1, 1, 2)
 
-        self.humanize_checkbox.stateChanged.connect(self.toggle_humanize_slider)
+        
 
         self.bpm_input = create_labeled_input("BPM:", label_width=30, line_width=50, default_value=str(self.bpm), validator=QIntValidator(60, 240), slot=self.update_bpm_from_input)
         self.controls_layout.addWidget(self.bpm_input['label'], 0, 0)
@@ -83,10 +79,8 @@ class DrumPadWidget(QWidget):
         generate_button.clicked.connect(self.generate_code_from_grid)
         self.controls_layout.addWidget(generate_button, 0, 9)
 
-        # Add controls layout to main layout
         self.main_layout.addLayout(self.controls_layout)
 
-        # Grid layout
         self.grid_layout = QGridLayout()
         self.init_grid_layout()
         self.main_layout.addLayout(self.grid_layout)
@@ -137,7 +131,7 @@ class DrumPadWidget(QWidget):
             for col in range(self.cols_max):
                 pad_button = QPushButton()
                 pad_button.clicked.connect(lambda _, r=row, c=col: self.toggle_sequence_grid(r, c))
-                self.update_button_color(pad_button, self.sequence_grid[row][col])  # Set initial color based on sequence_grid
+                self.update_button_color(pad_button, self.sequence_grid[row][col])
                 self.grid_layout.addWidget(pad_button, row + 1, col + 1)
 
     def toggle_humanize_slider(self, state):
@@ -274,7 +268,7 @@ class DrumPadWidget(QWidget):
                     deviation_percent = self.humanize_slider.value() / 100
                     deviation_ms = self.interval_per_pad * deviation_percent
                     random_delay = random.uniform(-deviation_ms, deviation_ms)
-                    random_delay = max(0, int(random_delay))  # Clamp to zero if negative
+                    random_delay = max(0, int(random_delay))
                     QTimer.singleShot(random_delay, partial(send_osc_message, "/drum_pad", sample))
         if not self.humanize_checkbox.isChecked() and osc_list:
             send_osc_message("/drum_pad", osc_list)

@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QPushButton, QLabel,
-    QLineEdit, QComboBox, QMenu, QAction, QToolButton,QCheckBox, QSlider
+    QLineEdit, QComboBox, QMenu, QAction, QToolButton,QCheckBox, QSlider, QApplication
 )
 import random
 from functools import partial
 from PyQt5.QtCore import Qt, QTimer, QSize
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QClipboard
 from ui.code_window import CodeWindow
 from logic.osc_client import send_osc_message
 from logic.recording import add_recorded_event
@@ -45,7 +45,7 @@ class DrumPadWidget(QWidget):
         self.humanize_checkbox = create_checkbox("Humanize", False, self.toggle_humanize_slider)
         self.controls_layout.addWidget(self.humanize_checkbox, 1, 0)
 
-        self.humanize_slider = create_slider(Qt.Horizontal, 0, 100, 20, False)
+        self.humanize_slider = create_slider(Qt.Horizontal, 0, 60, 20, False)
         self.controls_layout.addWidget(self.humanize_slider, 1, 1, 1, 2)
 
         
@@ -76,8 +76,18 @@ class DrumPadWidget(QWidget):
         self.controls_layout.addWidget(rec_button, 0, 8)
 
         generate_button = QPushButton("Generate Code")
-        generate_button.clicked.connect(self.generate_code_from_grid)
+        generate_button.clicked.connect(lambda: self.generate_code_from_grid(True))
         self.controls_layout.addWidget(generate_button, 0, 9)
+
+        copy_button = QPushButton("Quick Generated Copy")
+        copy_button.clicked.connect(lambda: self.generate_code_from_grid(False))
+        self.controls_layout.addWidget(copy_button, 1, 9)
+
+        self.sync_function_input = create_labeled_input(
+            "Sync Function:", label_width=100, line_width=150, default_value="", validator=None, slot=None
+        )
+        self.controls_layout.addWidget(self.sync_function_input['label'], 2, 0)
+        self.controls_layout.addWidget(self.sync_function_input['input'], 2, 1, 1, 2)
 
         self.main_layout.addLayout(self.controls_layout)
 
@@ -212,47 +222,69 @@ class DrumPadWidget(QWidget):
             self.indicator_lines[self.playing_column].setStyleSheet("background-color: green;")
         self.metronome_timer.stop()
 
-    def generate_code_from_grid(self):
+    def generate_code_from_grid(self, showWindow):
         humanize_enabled = self.humanize_checkbox.isChecked()
         humanize_value = self.humanize_slider.value() / 100
         sonic_pi_code = "use_bpm {}\n".format(self.bpm)
         pad_sleep = 1 / self.cols_loop_speed
 
+        sync_function_name = self.sync_function_input['input'].text().strip()
+
         for row, (key, sample) in enumerate(self.key_sample_map.items()):
             sonic_pi_code += "live_loop :{} do\n".format(sample)
+
+            if sync_function_name:
+                sonic_pi_code += "  sync :{}\n".format(sync_function_name)
+
             accumulated_sleep = 0.0
-            compensation = 0.0
+            loop_duration = 0.0  # To track total loop duration
+
             for col in range(self.cols_max):
                 if self.sequence_grid[row][col]:
                     if accumulated_sleep > 0:
                         if humanize_enabled:
                             variation = pad_sleep * humanize_value
                             adjusted_sleep = accumulated_sleep + random.uniform(-variation, variation)
-                            compensation = accumulated_sleep - adjusted_sleep
+                            adjusted_sleep = max(0.01, adjusted_sleep)  # Ensure adjusted_sleep is not zero or negative
                             sonic_pi_code += "  sleep {}\n".format(adjusted_sleep)
+                            loop_duration += adjusted_sleep
                         else:
                             sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
+                            loop_duration += accumulated_sleep
                         accumulated_sleep = 0.0
 
                     sonic_pi_code += "  sample :{}\n".format(sample)
-                    accumulated_sleep += pad_sleep
-
+                    accumulated_sleep = pad_sleep
                 else:
                     accumulated_sleep += pad_sleep
 
+            # Handle the final accumulated sleep to ensure loop consistency
             if accumulated_sleep > 0:
                 if humanize_enabled:
                     variation = pad_sleep * humanize_value
                     adjusted_sleep = accumulated_sleep + random.uniform(-variation, variation)
-                    adjusted_sleep += compensation
-                    compensation = 0.0
+                    adjusted_sleep = max(0.01, adjusted_sleep)  # Ensure adjusted_sleep is not zero or negative
                     sonic_pi_code += "  sleep {}\n".format(adjusted_sleep)
+                    loop_duration += adjusted_sleep
                 else:
                     sonic_pi_code += "  sleep {}\n".format(accumulated_sleep)
+                    loop_duration += accumulated_sleep
+
+            # Check if the loop duration is too long/short and adjust if necessary
+            total_expected_duration = pad_sleep * self.cols_max
+            if loop_duration < total_expected_duration:
+                sonic_pi_code += "  sleep {}\n".format(total_expected_duration - loop_duration)
+
             sonic_pi_code += "end\n"
 
-        code_window = CodeWindow(sonic_pi_code, self)
-        code_window.exec_()
+        if showWindow:
+            code_window = CodeWindow(sonic_pi_code, self)
+            code_window.exec_()
+        else:
+            clipboard = QApplication.clipboard()
+            clipboard.setText(sonic_pi_code)
+
+
 
     def play_next_column(self):
         osc_list = []

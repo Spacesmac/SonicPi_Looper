@@ -6,8 +6,11 @@ live_loop :drum_pad do
   end
 end
 
-live_loop :code_receiver do
-  code = sync "/osc*/run-code"
+live_loop :effects_receiver do
+  use_real_time
+  code = sync "/osc*/run_code"
   eval code[0]
 end
-  
+
+
+

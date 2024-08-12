@@ -18,6 +18,7 @@ class DrumPadWidget(QWidget):
         self.cols_max = 8
         self.cols_loop_speed = 4
         self.playing_column = 0
+        self.list_effects = ["", "", "", "", "", "", ""]
         self.is_recording = False
         self.drum_samples = {
             'Kicks:': ['drum_heavy_kick'],
@@ -143,6 +144,26 @@ class DrumPadWidget(QWidget):
                 pad_button.clicked.connect(lambda _, r=row, c=col: self.toggle_sequence_grid(r, c))
                 self.update_button_color(pad_button, self.sequence_grid[row][col])
                 self.grid_layout.addWidget(pad_button, row + 1, col + 1)
+        
+        self.create_effects_col()
+
+
+    def create_effects_col(self):
+        effect_title = QLabel("Add Effects:")
+        effect_title.setFixedWidth(200)
+        self.grid_layout.addWidget(effect_title, 0, self.cols_max + 2)
+
+        self.effect_inputs = []  # Store references to the QLineEdit widgets
+
+        for row, (key, sample) in enumerate(self.key_sample_map.items()):
+            effect_input = QLineEdit(self.list_effects[row])
+            effect_input.setFixedWidth(200)
+            effect_input.returnPressed.connect(lambda r=row: self.update_effect(r))
+            self.grid_layout.addWidget(effect_input, row + 1, self.cols_max + 2)
+            self.effect_inputs.append(effect_input)
+    def update_effect(self, row):
+        text = self.effect_inputs[row].text()
+        self.list_effects[row] = text
 
     def toggle_humanize_slider(self, state):
         self.humanize_slider.setEnabled(state == Qt.Checked)
@@ -198,7 +219,7 @@ class DrumPadWidget(QWidget):
 
     def on_name_button_press(self, sample):
         print(f"Playing sample: {sample}")
-        send_osc_message("/drum_pad", sample)
+        send_osc_message("/drum_pad", sample, None)
         add_recorded_event(sample)
 
     def restart_metronome(self):
@@ -236,6 +257,8 @@ class DrumPadWidget(QWidget):
             if sync_function_name:
                 sonic_pi_code += "  sync :{}\n".format(sync_function_name)
 
+            if row < len(self.list_effects) and self.list_effects[row].strip():
+                sonic_pi_code += "  {} do\n".format(self.list_effects[row].strip())
             accumulated_sleep = 0.0
             loop_duration = 0.0  # To track total loop duration
 
@@ -274,7 +297,8 @@ class DrumPadWidget(QWidget):
             total_expected_duration = pad_sleep * self.cols_max
             if loop_duration < total_expected_duration:
                 sonic_pi_code += "  sleep {}\n".format(total_expected_duration - loop_duration)
-
+            if row < len(self.list_effects) and self.list_effects[row].strip():
+                sonic_pi_code += "    end\n"
             sonic_pi_code += "end\n"
 
         if showWindow:
@@ -288,6 +312,7 @@ class DrumPadWidget(QWidget):
 
     def play_next_column(self):
         osc_list = []
+        effects = []
         for col in range(self.cols_max):
             self.indicator_lines[col].setStyleSheet("background-color: red;")
         self.indicator_lines[self.playing_column].setStyleSheet("background-color: green;")
@@ -296,14 +321,15 @@ class DrumPadWidget(QWidget):
                 print("Playing cols")
                 sample = self.key_sample_map[list(self.key_sample_map.keys())[row]]
                 osc_list.append(sample)
+                effects.append(self.list_effects[row])
                 if self.humanize_checkbox.isChecked():
                     deviation_percent = self.humanize_slider.value() / 100
                     deviation_ms = self.interval_per_pad * deviation_percent
                     random_delay = random.uniform(-deviation_ms, deviation_ms)
                     random_delay = max(0, int(random_delay))
-                    QTimer.singleShot(random_delay, partial(send_osc_message, "/drum_pad", sample))
+                    QTimer.singleShot(random_delay, partial(send_osc_message, "/drum_pad", sample, self.list_effects[row]))
         if not self.humanize_checkbox.isChecked() and osc_list:
-            send_osc_message("/drum_pad", osc_list)
+            send_osc_message("/drum_pad", osc_list, effects)
         self.playing_column = (self.playing_column + 1) % self.cols_max
 
     def handle_key_press(self, event):

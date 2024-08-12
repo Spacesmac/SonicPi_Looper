@@ -19,7 +19,9 @@ def create_labeled_input(label_text, label_width, default_value, validator, line
     label = QLabel(label_text)
     label.setFixedWidth(label_width)
     line_edit = QLineEdit(default_value)
-    line_edit.setValidator(validator)
+    if validator != None:
+        line_edit.setValidator(validator)
     line_edit.setFixedWidth(line_width)
-    line_edit.editingFinished.connect(slot)
+    if slot != None:
+        line_edit.editingFinished.connect(slot)
     return {'label': label, 'input': line_edit}

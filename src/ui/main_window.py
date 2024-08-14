@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         print(f"Key pressed: {event.text()}")  # Debug print
         if event.text() == 'r': #Record button
-            self.controls.handle_record_key(event.text())
+            self.drum_pad.toggle_recording()
         else:
             self.drum_pad.handle_key_press(event)
 

@@ -34,7 +34,7 @@ Ensure that you have Sonic Pi installed on your machine. It should be configured
 ## Usage
 
 ### Starting the Application
-When you start the application, a window with a grid layout will appear. The grid contains rows for each sample and columns for each beats. At the top, there are controls for BPM, loop speed, and other features.
+When you start the application, a window with a grid layout will appear. The grid contains rows for each sample and columns for each beat. At the top, there are controls for BPM, loop speed, and other features.
 
 ### Playing Samples
 **- Keyboard Controls:** Press the keys mapped to specific samples to play them. You can see the current mapping on the buttons in the first column or see bellow:
@@ -58,7 +58,7 @@ You can change the mapping in the code if you want, it's in the _`drum_pad_widge
 While recording, pressing a key will activate the corresponding pad in the grid.
 
 ### Code Generation
-**Generate Code:** Click the "Generate Code" button toopen a window with the generated Sonic Pi code. You can also use the "Quick Generated Copy button to copy the code directly to your clipboard. With the generated code, you will be able to understand better the actions you are doing in the drum pad app, and what's actually the transalation to code of what you were playing. I recomend you to open another file next to the SonicPi file from the repository if you want to see clearly the code. You can click on `Stop` for the playing code, and then click `Run` with the other code so that you don't have two differents instances playing at the same time.
+**Generate Code:** Click the "Generate Code" button to open a window with the generated Sonic Pi code. You can also use the "Quick Generated Copy button to copy the code directly to your clipboard. With the generated code, you will be able to better understand the actions you are doing in the drum pad app, and what's actually the translation to code of what you were playing. I recommend you to open another file next to the SonicPi file from the repository if you want to see the code clearly. You can click on `Stop` for the playing code, and then click `Run` with the other code so that you don't have two different instances playing at the same time.
 
 ### Sending OSC Messages
 **- Automatic:** The application automatically sends OSC messages to Sonic Pi whenever a sample is played.
@@ -72,7 +72,7 @@ While recording, pressing a key will activate the corresponding pad in the grid.
 **- Sample Selection:** You can change the sample assigned to each key by selecting from a dropdown menu.
 
 ### Sequencing
-**- Grid Layour:** The main interface features a grid where each row corresponds to a drum sample, and each column represents a beat within the loop.
+**- Grid Layout:** The main interface features a grid where each row corresponds to a drum sample, and each column represents a beat within the loop.
 **- Toggle Pads:** You can click on the grid cells to activate or deactivate pads. Activated pads will play the associated drum sample at the corresponding beat.
 
 ### Playback Control
@@ -92,11 +92,11 @@ While recording, pressing a key will activate the corresponding pad in the grid.
 **- OSC Messaging:** The tool sends OSC messages to a local Sonic Pi server. You can define effects and trigger them via the OSC client, allowing integration with Sonic Pi's powerful live coding environment.
 
 ## Conclusion
-The Drum Pad is a powerful and flexible tool for creating drum patterns, integrating live coding with Sonic Pi, and exmploring various beat-making techniques. Whether you are using it for live performance or just experimenting with rhythms, this tool offers a wide range of creative possibilities.
+The Drum Pad is a powerful and flexible tool for creating drum patterns, integrating live coding with Sonic Pi, and exploring various beat-making techniques. Whether you are using it for live performance or just experimenting with rhythms, this tool offers a wide range of creative possibilities.
 
 ## Ideas for Future Improvement
-### - Clearing and refactoring the code
-### - Upgrading UI
-### - Add a save feature to save your current work
-### - Understand Sonic Pi code so that it can recreate the patterns of the choosen code
-### - Add a new pannel to add effect on a single cell of the grid
+#### - Clearing and refactoring the code
+#### - Upgrading UI
+#### - Add a save feature to save your current work
+#### - Understand Sonic Pi code so that it can recreate the patterns of the chosen code
+#### - Add a new panel to add effect on a single cell of the grid

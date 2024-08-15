@@ -67,8 +67,10 @@ While recording, pressing a key will activate the corresponding pad in the grid.
 
 - **Custom Effects:** Define custom effects using the effect input fields. These effects will be applied when sending OSC messages using another method of reception. you can try to add `with_fx :reverb` for example, and it will add this effect to the whole line playing.
 
+Be careful if you add inputs in the effects field, because if there is an error in what you typed, Sonic Pi will encounter a Runtime error, and you will have fix the code you put and then in Sonic Pi to click ```Stop``` and then ```Run``` again to restart the process.
 
-##Features
+
+## Features
 
 ### Drum Pad Mapping
 - **Key-Sample Mapping:** The application lets you map different drum samples to specific keys on your keyboard. For example, pressing "A" key might trigger a kick drum, while pressing "S" might trigger a snare drum.

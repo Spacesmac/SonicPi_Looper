@@ -73,10 +73,10 @@ class DrumPadWidget(QWidget):
         stop_button.clicked.connect(self.stop_metronome)
         self.controls_layout.addWidget(stop_button, 0,7)
 
-        rec_button = QPushButton("Rec")
-        rec_button.setCheckable(True)
-        rec_button.clicked.connect(self.toggle_recording)
-        self.controls_layout.addWidget(rec_button, 0, 8)
+        self.rec_button = QPushButton("Rec")
+        self.rec_button.setCheckable(True)
+        self.rec_button.clicked.connect(self.toggle_recording)
+        self.controls_layout.addWidget(self.rec_button, 0, 8)
 
         generate_button = QPushButton("Generate Code")
         generate_button.clicked.connect(lambda: self.generate_code_from_grid(True))
@@ -211,9 +211,11 @@ class DrumPadWidget(QWidget):
     def toggle_recording(self):
         self.is_recording = not self.is_recording
         if self.is_recording:
+            self.rec_button.setStyleSheet("background-color: red")
             self.start_metronome()  # Ensure the metronome is running when recording starts
             print("Recording started")
         else:
+            self.rec_button.setStyleSheet("background-color: lightgrey")
             print("Recording stopped")
 
     def update_button_color(self, button, is_active):

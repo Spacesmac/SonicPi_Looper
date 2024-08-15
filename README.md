@@ -27,7 +27,7 @@ Ensure that you have Sonic Pi installed on your machine. It should be configured
    ```
 #### 2. Run the Application
   ```bash
-  python main.py
+  python src/main.py
   ```
   This will start the application. The main window will open, allowing you to interact with the drum pads.
 #### 3. Open Sonic Pi file (.rb) with Sonic Pi

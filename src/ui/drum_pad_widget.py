@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 import random
 from functools import partial
 from PyQt5.QtCore import Qt, QTimer, QSize
-from PyQt5.QtGui import QIntValidator, QClipboard
+from PyQt5.QtGui import QIntValidator, QClipboard, QMouseEvent
 from ui.code_window import CodeWindow
 from logic.osc_client import send_osc_message
 from logic.recording import add_recorded_event
@@ -46,9 +46,11 @@ class DrumPadWidget(QWidget):
         self.humanize_checkbox = create_checkbox("Humanize", False, self.toggle_humanize_slider)
         self.controls_layout.addWidget(self.humanize_checkbox, 1, 0)
 
-        self.humanize_slider = create_slider(Qt.Horizontal, 0, 60, 20, False)
+        self.humanize_slider = create_slider(Qt.Horizontal, 0, 100, 20, False)
+        self.humanize_slider.valueChanged.connect(self.update_humanize_label)
         self.controls_layout.addWidget(self.humanize_slider, 1, 1, 1, 2)
-
+        self.humanize_label = QLabel(f"{self.humanize_slider.value()}%")
+        self.controls_layout.addWidget(self.humanize_label, 1, 3)
         
 
         self.bpm_input = create_labeled_input("BPM:", label_width=30, line_width=50, default_value=str(self.bpm), validator=QIntValidator(60, 240), slot=self.update_bpm_from_input)
@@ -103,6 +105,15 @@ class DrumPadWidget(QWidget):
         self.metronome_timer.timeout.connect(self.play_next_column)
         self.restart_metronome()
 
+    def mousePressEvent(self, event: QMouseEvent):
+        focused_widget = QApplication.focusWidget()
+        if isinstance(focused_widget, QLineEdit):
+            focused_widget.clearFocus()
+        super().mousePressEvent(event)
+
+    def update_humanize_label(self, value):
+        self.humanize_label.setText(f"{value}%")
+
     def init_grid_layout(self):
         # Clear the old grid layout
         for i in reversed(range(self.grid_layout.count())):
@@ -149,15 +160,14 @@ class DrumPadWidget(QWidget):
 
 
     def create_effects_col(self):
-        effect_title = QLabel("Add Effects:")
-        effect_title.setFixedWidth(200)
+        effect_title = QLabel("Add Effects: (Press \"Enter\" to confirm when done)")
+        effect_title.setFixedWidth(300)
         self.grid_layout.addWidget(effect_title, 0, self.cols_max + 2)
-
         self.effect_inputs = []  # Store references to the QLineEdit widgets
 
         for row, (key, sample) in enumerate(self.key_sample_map.items()):
             effect_input = QLineEdit(self.list_effects[row])
-            effect_input.setFixedWidth(200)
+            effect_input.setFixedWidth(300)
             effect_input.returnPressed.connect(lambda r=row: self.update_effect(r))
             self.grid_layout.addWidget(effect_input, row + 1, self.cols_max + 2)
             self.effect_inputs.append(effect_input)
